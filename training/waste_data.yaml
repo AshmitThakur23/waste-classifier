@@ -1,0 +1,22 @@
+# Waste Classification Dataset Configuration
+# Maps to: ORGANIC (Green), RECYCLABLE (Blue), HAZARDOUS (Red)
+
+# Using Combined Public Waste Dataset as primary
+train: C:/Users/asus/Downloads/Combined Public Waste Dataset.yolov8/train/images
+val: C:/Users/asus/Downloads/Combined Public Waste Dataset.yolov8/valid/images
+test: C:/Users/asus/Downloads/Combined Public Waste Dataset.yolov8/test/images
+
+# Number of classes
+nc: 4
+
+# Class names (will be mapped in post-processing)
+# 0: general waste -> HAZARDOUS (safety default)
+# 1: hazardous waste -> HAZARDOUS
+# 2: organic -> ORGANIC (BIODEGRADABLE)
+# 3: recyclable -> RECYCLABLE
+names: ['general waste', 'hazardous waste', 'organic', 'recyclable']
+
+# Class mapping for our app:
+# organic -> GREEN dustbin (ORGANIC/BIODEGRADABLE)
+# recyclable -> BLUE dustbin (RECYCLABLE)
+# hazardous waste, general waste -> RED dustbin (HAZARDOUS)
