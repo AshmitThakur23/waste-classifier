@@ -67,7 +67,7 @@ def train_model():
         
         # Training parameters - MEMORY SAFE
         'epochs': 50,           # Good balance for dataset size
-        'batch': 8,             # Safe batch size for 4GB VRAM
+        'batch': 4,             # SMALLER batch for RAM safety
         'imgsz': 416,           # Reduced from 640 to save memory
         'patience': 10,         # Early stopping patience
         
@@ -75,7 +75,7 @@ def train_model():
         'device': 0 if has_gpu else 'cpu',
         
         # Memory optimization
-        'workers': 2,           # Low worker count to save memory
+        'workers': 0,           # NO workers to prevent RAM crash
         'cache': False,         # Don't cache images in RAM
         'amp': True,            # Mixed precision training (FP16)
         
