@@ -67,7 +67,7 @@ def train_model():
         
         # Training parameters - MEMORY SAFE
         'epochs': 50,           # Good balance for dataset size
-        'batch': 4,             # SMALLER batch for RAM safety
+        'batch': 8,             # Uses ~1.7-2GB VRAM
         'imgsz': 416,           # Reduced from 640 to save memory
         'patience': 10,         # Early stopping patience
         

@@ -213,11 +213,42 @@ async def classify_waste(file: UploadFile = File(...)):
             # Normalize to standard categories
             category = normalize_class_name(yolo_class_name)
             
-            # Apply safety threshold
+            # SMART CORRECTION: Fix model bias towards RECYCLABLE
+            # Check if other classes have decent scores
+            all_detections = {}
+            for i, (cls_id, conf) in enumerate(zip(classes, confidences)):
+                cls_name = class_names[int(cls_id)]
+                if cls_name not in all_detections or conf > all_detections[cls_name]:
+                    all_detections[cls_name] = float(conf)
+            
+            logger.info(f"All detections: {all_detections}")
+            
+            # If predicted RECYCLABLE but HAZARDOUS or GENERAL has >20% confidence, reconsider
+            if category == "RECYCLABLE" and confidence < 0.80:
+                if all_detections.get("HAZARDOUS", 0) > 0.20:
+                    category = "HAZARDOUS"
+                    confidence = all_detections["HAZARDOUS"]
+                    yolo_class_name = "HAZARDOUS"
+                    logger.info("⚠️ Corrected: RECYCLABLE -> HAZARDOUS (safety)")
+                elif all_detections.get("GENERAL", 0) > 0.25:
+                    category = "GENERAL"
+                    confidence = all_detections["GENERAL"]
+                    yolo_class_name = "GENERAL"
+                    logger.info("⚠️ Corrected: RECYCLABLE -> GENERAL")
+            
+            # Apply safety threshold - but be smart about it
+            # ORGANIC is safe even if wrong (compost), so don't override it
+            # HAZARDOUS should stay HAZARDOUS 
+            # Only apply strict threshold to RECYCLABLE (wrong recycling is bad)
             is_safe_classification = confidence >= CONFIDENCE_THRESHOLD
-            if not is_safe_classification:
-                category = "HAZARDOUS"  # Default to hazardous for safety
-                logger.warning(f"Low confidence ({confidence:.2f}), classifying as HAZARDOUS")
+            if not is_safe_classification and category == "RECYCLABLE":
+                # Low confidence recyclable -> default to GENERAL (safer)
+                category = "GENERAL"
+                logger.warning(f"Low confidence ({confidence:.2f}) recyclable -> GENERAL")
+            elif not is_safe_classification and category not in ["ORGANIC", "HAZARDOUS"]:
+                # Unknown low confidence -> GENERAL (not HAZARDOUS, to avoid confusion)
+                category = "GENERAL"
+                logger.warning(f"Low confidence ({confidence:.2f}), classifying as GENERAL")
             
             # Get dustbin info
             dustbin_color = get_dustbin_color(category)
