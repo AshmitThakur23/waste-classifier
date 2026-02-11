@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
     },
     {
       "src": "frontend/**",
@@ -31,14 +34,5 @@
       "src": "/(.*)",
       "dest": "/frontend/index.html"
     }
-  ],
-  "functions": {
-    "api/index.py": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
-  "env": {
-    "GEMINI_API_KEY": "@gemini_api_key"
-  }
+  ]
 }
