@@ -1,21 +1,14 @@
 """
 Vercel Serverless Function Handler
-Wraps the FastAPI app for Vercel deployment
+Waste Classification API powered by Gemini Vision AI
 """
-import sys
 import os
-
-# Add backend to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
-
-# For Vercel, we need to handle the app differently
+import io
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from datetime import datetime
-from PIL import Image
-import io
 import logging
+from PIL import Image
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
