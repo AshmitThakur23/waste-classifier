@@ -73,4 +73,5 @@ jobs:
         with:
           app-name: 'waste-classifier-ashmit'
           slot-name: 'Production'
+          startup-command: 'cd backend && uvicorn app:app --host 0.0.0.0 --port 8000'
           
