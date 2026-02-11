@@ -1,0 +1,13 @@
+# Vercel Serverless Requirements (lightweight - no PyTorch/YOLO)
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Gemini AI for classification
+google-generativeai==0.3.2
+
+# Image processing (lightweight)
+Pillow==10.1.0
+
+# Utilities
+python-dotenv==1.0.0

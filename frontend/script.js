@@ -2,9 +2,9 @@
 // Smart Waste Classifier - Frontend Logic
 // ========================================
 
-// Configuration
-const API_URL = 'http://localhost:8000'; // Change for production
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+// Configuration - Use relative URL for Vercel (frontend and API on same domain)
+const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (Vercel limit)
 
 // DOM Elements
 const uploadArea = document.getElementById('uploadArea');
