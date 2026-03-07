@@ -11,7 +11,7 @@ import time
 # ============================================================
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TRAINED_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "garbage_detect_best.pt")
+TRAINED_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "garbage_detect.pt")
 
 _garbage_model = None
 _general_model = None
@@ -29,7 +29,7 @@ def _load_model():
         else:
             print(f"❌ Garbage model not found: {TRAINED_MODEL_PATH}")
         
-        _person_model_path = os.path.join(_PROJECT_ROOT, "models", "person_yolov8n.pt")
+        _person_model_path = os.path.join(_PROJECT_ROOT, "models", "person_detect.pt")
         _general_model = YOLO(_person_model_path)
         print("✅ General YOLO loaded for backup detection")
         

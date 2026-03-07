@@ -4,7 +4,7 @@ import os
 
 # Use relative path from project root
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "person_yolov8n.pt")
+_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "person_detect.pt")
 
 model = YOLO(_MODEL_PATH)
 

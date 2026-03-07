@@ -20,7 +20,6 @@ training/runs/
 
 # Model weights (large - use git lfs or download separately)
 models/*.pt
-backend/model/*.pt
 *.pt.backup
 
 # Evidence (auto-generated at runtime)

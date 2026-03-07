@@ -174,7 +174,7 @@ def train_model():
         
         # Find and copy the best model
         best_model_path = Path(config['project']) / config['name'] / 'weights' / 'best.pt'
-        final_model_path = PROJECT_ROOT / 'backend' / 'model' / 'best.pt'
+        final_model_path = PROJECT_ROOT / 'models' / 'waste_classify.pt'
         
         if best_model_path.exists():
             import shutil
@@ -276,7 +276,7 @@ if __name__ == "__main__":
         print("\n" + "🎉 " * 20)
         print("    TRAINING COMPLETE!")
         print("    Your new best.pt model is ready!")
-        print("    Located at: backend/model/best.pt")
+        print("    Located at: models/waste_classify.pt")
         print("🎉 " * 20 + "\n")
     else:
         print("\n❌ Training failed. Check the error messages above.")

@@ -53,7 +53,7 @@ app.add_middleware(
 )
 
 # Configuration
-MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), 'model', 'best.pt'))
+MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), '..', 'models', 'waste_classify.pt'))
 CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.65"))
 MAX_IMAGE_SIZE = int(os.getenv("MAX_IMAGE_SIZE", "10485760"))  # 10MB
 FRONTEND_PATH = Path(__file__).parent.parent / "frontend"

@@ -7,9 +7,9 @@ import cv2
 from ultralytics import YOLO
 import os
 
-# Use the waste classifier model from backend
+# Use the waste classifier model
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(_PROJECT_ROOT, "backend", "model", "best.pt")
+MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "waste_classify.pt")
 
 _model = None
 _model_loaded = False

@@ -12,7 +12,7 @@ import os
 
 # Path to trained hand model - relative to project root
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HAND_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "hand_best.pt")
+HAND_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "hand_detect.pt")
 
 _hand_model = None
 _model_loaded = False

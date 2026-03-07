@@ -41,7 +41,6 @@ SmartWaste-AI/
 â”‚   â”œâ”€â”€ app.py                 # FastAPI server (port 8000)
 â”‚   â”œâ”€â”€ gemini_service.py      # Gemini AI text tips
 â”‚   â”œâ”€â”€ utils.py               # Dustbin colors, helpers
-â”‚   â””â”€â”€ model/best.pt          # Waste classifier (4 classes)
 â”‚
 â”œâ”€â”€ frontend/                  # Waste Classification Web UI
 â”‚   â”œâ”€â”€ index.html
@@ -64,11 +63,12 @@ SmartWaste-AI/
 â”‚   â”œâ”€â”€ app.py                 # Flask server (port 5000)
 â”‚   â””â”€â”€ templates/             # Cyberpunk dashboard UI
 â”‚
-â”œâ”€â”€ models/                    # YOLOv8 trained weights
-â”‚   â”œâ”€â”€ hand_best.pt
-â”‚   â”œâ”€â”€ garbage_detect_best.pt
-â”‚   â”œâ”€â”€ dustbin_best.pt
-â”‚   â””â”€â”€ person_yolov8n.pt
+â”œâ”€â”€ models/                    # All YOLOv8 model weights
+â”‚   â”œâ”€â”€ waste_classify.pt    # Waste classification (4 classes)
+â”‚   â”œâ”€â”€ hand_detect.pt         # Hand detection
+â”‚   â”œâ”€â”€ garbage_detect.pt      # Garbage detection
+â”‚   â”œâ”€â”€ dustbin_detect.pt      # Dustbin detection
+â”‚   â””â”€â”€ person_detect.pt       # Person detection
 â”‚
 â”œâ”€â”€ evidence/                  # Auto-captured littering evidence
 â”‚   â”œâ”€â”€ images/

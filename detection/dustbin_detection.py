@@ -9,7 +9,7 @@ import os
 # ============================================================
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "dustbin_best.pt")
+MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "dustbin_detect.pt")
 
 _dustbin_model = None
 _model_loaded = False

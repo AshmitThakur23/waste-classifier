@@ -66,7 +66,7 @@ print("=" * 60)
 print("Loading models...")
 
 # Person model
-person_model_path = os.path.join(PROJECT_ROOT, "models", "person_yolov8n.pt")
+person_model_path = os.path.join(PROJECT_ROOT, "models", "person_detect.pt")
 person_model = YOLO(person_model_path)
 print("✅ Person model: YOLOv8n")
 
