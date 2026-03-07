@@ -1,7 +1,7 @@
 """
 FastAPI Backend for Waste Classification
-Classifies waste into: ORGANIC, RECYCLABLE, HAZARDOUS
-Uses Gemini Vision AI (primary) + YOLOv8 (fallback) for intelligent waste segregation
+Classifies waste into: ORGANIC, RECYCLABLE, HAZARDOUS, GENERAL
+Uses YOLOv8 model (primary) + Gemini AI for generating awareness tips
 """
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
@@ -30,7 +30,7 @@ from utils import (
     normalize_class_name,
     validate_image_format
 )
-from gemini_service import generate_awareness_tip, generate_safety_warning, classify_with_gemini_vision
+from gemini_service import generate_awareness_tip, generate_safety_warning
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -155,43 +155,8 @@ async def classify_waste(file: UploadFile = File(...)):
         if image.mode != 'RGB':
             image = image.convert('RGB')
         
-        # ===== PRIMARY: Try Gemini Vision for accurate classification =====
-        logger.info("🔍 Attempting Gemini Vision classification...")
-        gemini_category, gemini_item, gemini_confidence = classify_with_gemini_vision(image)
-        
-        if gemini_category and gemini_confidence > 0:
-            # Gemini Vision succeeded - use its result
-            logger.info(f"✅ Gemini Vision: {gemini_category} ({gemini_item}) - {gemini_confidence:.2%}")
-            
-            category = gemini_category
-            detected_item = gemini_item
-            confidence = gemini_confidence
-            is_safe_classification = True
-            
-            # Get dustbin info
-            dustbin_color = get_dustbin_color(category)
-            dustbin_icon = get_dustbin_icon(category)
-            
-            # Generate awareness tip
-            awareness_tip = generate_awareness_tip(detected_item, category, confidence)
-            safety_warning = ""
-            
-            return {
-                "success": True,
-                "category": category,
-                "confidence": round(confidence, 4),
-                "dustbin_color": dustbin_color,
-                "dustbin_icon": dustbin_icon,
-                "explanation": awareness_tip,
-                "safety_warning": safety_warning,
-                "is_safe_classification": is_safe_classification,
-                "detected_item": detected_item,
-                "timestamp": datetime.utcnow().isoformat(),
-                "model_used": "Gemini Vision AI"
-            }
-        
-        # ===== FALLBACK: Use YOLO model if Gemini fails =====
-        logger.info("⚠️ Gemini unavailable, falling back to YOLO model...")
+        # ===== PRIMARY: YOLOv8 Model for waste classification =====
+        logger.info("🔍 Running YOLOv8 classification...")
         results = model(image, verbose=False)
         
         # Process results
@@ -272,7 +237,8 @@ async def classify_waste(file: UploadFile = File(...)):
                 "safety_warning": safety_warning,
                 "is_safe_classification": is_safe_classification,
                 "detected_item": yolo_class_name,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
+                "model_used": "YOLOv8 Custom Trained"
             }
             
             logger.info(f"✅ Classification successful: {category} (confidence: {confidence:.2f})")
