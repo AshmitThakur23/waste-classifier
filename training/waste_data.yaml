@@ -1,10 +1,10 @@
 # Waste Classification Dataset Configuration
 # Maps to: ORGANIC (Green), RECYCLABLE (Blue), HAZARDOUS (Red)
 
-# Using Combined Public Waste Dataset as primary
-train: C:/Users/asus/Downloads/Combined Public Waste Dataset.yolov8/train/images
-val: C:/Users/asus/Downloads/Combined Public Waste Dataset.yolov8/valid/images
-test: C:/Users/asus/Downloads/Combined Public Waste Dataset.yolov8/test/images
+# Using local dataset
+train: ./dataset/train/images
+val: ./dataset/valid/images
+test: ./dataset/test/images
 
 # Number of classes
 nc: 4

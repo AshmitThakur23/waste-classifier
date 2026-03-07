@@ -14,7 +14,11 @@ Strategy:
 
 import torch
 import gc
+import os
+from pathlib import Path
 from ultralytics import YOLO
+
+TRAINING_DIR = Path(__file__).resolve().parent
 
 def train():
     print("=" * 60)
@@ -35,7 +39,7 @@ def train():
     
     # Train with aggressive augmentation for weak classes
     results = model.train(
-        data='D:/Hackthon-garbage/training/dataset/data.yaml',
+        data=str(TRAINING_DIR / 'dataset' / 'data.yaml'),
         
         # More epochs - resume learning
         epochs=80,
@@ -78,7 +82,7 @@ def train():
         cos_lr=True,       # Cosine LR schedule
         
         # Save config
-        project='D:/Hackthon-garbage/training/runs',
+        project=str(TRAINING_DIR / 'runs'),
         name='waste_v2_focused',
         exist_ok=True,
         save=True,
@@ -93,8 +97,8 @@ def train():
     
     # Validate
     print("\nValidating new model...")
-    model_new = YOLO('D:/Hackthon-garbage/training/runs/waste_v2_focused/weights/best.pt')
-    val = model_new.val(data='D:/Hackthon-garbage/training/dataset/data.yaml', imgsz=512, batch=4, workers=0)
+    model_new = YOLO(str(TRAINING_DIR / 'runs' / 'waste_v2_focused' / 'weights' / 'best.pt'))
+    val = model_new.val(data=str(TRAINING_DIR / 'dataset' / 'data.yaml'), imgsz=512, batch=4, workers=0)
     
     print(f"\nOverall mAP50: {val.box.map50*100:.1f}%")
     print(f"Per-class mAP50:")

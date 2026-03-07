@@ -19,6 +19,10 @@ import gc
 import torch
 from pathlib import Path
 
+# Project root (parent of training/)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+TRAINING_DIR = Path(__file__).resolve().parent
+
 def check_gpu():
     """Check GPU availability and memory"""
     print("=" * 60)
@@ -63,7 +67,7 @@ def train_model():
         'model': 'yolov8n.pt',  # Nano model ~3.2M parameters
         
         # Dataset configuration
-        'data': 'D:/Hackthon-garbage/training/dataset/data.yaml',
+        'data': str(TRAINING_DIR / 'dataset' / 'data.yaml'),
         
         # Training parameters - MEMORY SAFE
         'epochs': 50,           # Good balance for dataset size
@@ -98,7 +102,7 @@ def train_model():
         'mosaic': 0.5,          # Reduced mosaic (saves memory)
         
         # Output
-        'project': 'D:/Hackthon-garbage/training/runs',
+        'project': str(TRAINING_DIR / 'runs'),
         'name': 'waste_classifier',
         'exist_ok': True,       # Overwrite if exists
         'pretrained': True,     # Use pretrained weights
@@ -170,7 +174,7 @@ def train_model():
         
         # Find and copy the best model
         best_model_path = Path(config['project']) / config['name'] / 'weights' / 'best.pt'
-        final_model_path = Path('D:/Hackthon-garbage/backend/model/best.pt')
+        final_model_path = PROJECT_ROOT / 'backend' / 'model' / 'best.pt'
         
         if best_model_path.exists():
             import shutil
@@ -225,7 +229,7 @@ def validate_dataset():
     """Validate the dataset before training"""
     print("\n📁 Validating Dataset...")
     
-    dataset_path = Path('D:/Hackthon-garbage/training/dataset')
+    dataset_path = TRAINING_DIR / 'dataset'
     
     # Check directories exist
     for split in ['train', 'valid', 'test']:
@@ -272,7 +276,7 @@ if __name__ == "__main__":
         print("\n" + "🎉 " * 20)
         print("    TRAINING COMPLETE!")
         print("    Your new best.pt model is ready!")
-        print("    Located at: D:/Hackthon-garbage/backend/model/best.pt")
+        print("    Located at: backend/model/best.pt")
         print("🎉 " * 20 + "\n")
     else:
         print("\n❌ Training failed. Check the error messages above.")

@@ -1,6 +1,6 @@
-train: D:/Hackthon-garbage/training/dataset/train/images
-val: D:/Hackthon-garbage/training/dataset/valid/images
-test: D:/Hackthon-garbage/training/dataset/test/images
+train: ../dataset/train/images
+val: ../dataset/valid/images
+test: ../dataset/test/images
 
 nc: 4
 names: ['RECYCLABLE', 'ORGANIC', 'HAZARDOUS', 'GENERAL']

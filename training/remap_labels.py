@@ -23,7 +23,7 @@ import shutil
 def remap_labels():
     """Remap all label files from original to target 4 classes"""
     
-    dataset_path = Path('D:/Hackthon-garbage/training/dataset')
+    dataset_path = Path(__file__).resolve().parent / 'dataset'
     
     # Class mapping: old_class -> new_class
     # TARGET: RECYCLABLE=0, ORGANIC=1, HAZARDOUS=2, GENERAL=3
