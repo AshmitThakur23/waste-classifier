@@ -1,37 +1,32 @@
 import cv2
-import numpy as np
 from ultralytics import YOLO
 import os
 import time
 
 # ============================================================
-# GARBAGE DETECTION - STABLE VERSION WITH HAND DETECTION
+# GARBAGE DETECTION - Custom garbage_detect.pt Model
 # NO FLICKERING - Uses state machine with hysteresis
-# Uses hand detection to focus on objects in hands only
+# Uses person proximity for hold/drop detection
+# Hand detection as optional accuracy enhancement
 # ============================================================
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRAINED_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "garbage_detect.pt")
 
 _garbage_model = None
-_general_model = None
 _model_loaded = False
-_use_hand_detection = False  # Will be enabled after hand model training
+_use_hand_detection = False  # Optional enhancement for hand-based tracking
 
 
 def _load_model():
-    """Load garbage model once."""
-    global _garbage_model, _general_model, _model_loaded
+    """Load our custom garbage detection model."""
+    global _garbage_model, _model_loaded
     if not _model_loaded:
         if os.path.exists(TRAINED_MODEL_PATH):
             _garbage_model = YOLO(TRAINED_MODEL_PATH)
             print(f"✅ Garbage model loaded: {TRAINED_MODEL_PATH}")
         else:
             print(f"❌ Garbage model not found: {TRAINED_MODEL_PATH}")
-        
-        _person_model_path = os.path.join(_PROJECT_ROOT, "models", "person_detect.pt")
-        _general_model = YOLO(_person_model_path)
-        print("✅ General YOLO loaded for backup detection")
         
         _model_loaded = True
     return _garbage_model
@@ -304,112 +299,19 @@ def get_garbage_detections(frame, confidence_threshold=0.20, person_boxes=None, 
                 
                 obj_box = (x1, y1, x2, y2)
                 
-                # ONLY detect if in hands - strict check
-                if hand_boxes and _use_hand_detection:
-                    if _object_overlaps_hands(obj_box, hand_boxes):
-                        raw_detections.append({
-                            'box': obj_box,
-                            'class_name': class_name,
-                            'confidence': conf
-                        })
-                        detected_boxes.append(obj_box)
-    
-    # Backup general YOLO - Detect handheld objects ONLY
-    HANDHELD = ['bottle', 'cup', 'cell phone', 'remote', 'book', 'scissors', 
-                'bowl', 'banana', 'apple', 'sandwich', 'orange', 'wine glass',
-                'knife', 'spoon', 'fork']
-    
-    if _general_model:
-        gen_results = _general_model(frame, verbose=False, conf=0.40)
-        
-        for result in gen_results:
-            if result.boxes is not None:
-                for box in result.boxes:
-                    x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                    conf = float(box.conf[0])
-                    cls_id = int(box.cls[0])
-                    class_name = _general_model.names[cls_id]
-                    
-                    if class_name.lower() not in HANDHELD:
-                        continue
-                    
-                    obj_box = (x1, y1, x2, y2)
-                    
-                    # Skip duplicates
-                    if any(_boxes_overlap(obj_box, db) for db in detected_boxes):
-                        continue
-                    
-                    # ONLY detect if in hands
-                    if hand_boxes and _use_hand_detection:
-                        if _object_overlaps_hands(obj_box, hand_boxes):
-                            raw_detections.append({
-                                'box': obj_box,
-                                'class_name': class_name.title(),
-                                'confidence': conf
-                            })
+                # Let ALL trained model detections through
+                # The StableObjectTracker handles hold/drop via person proximity
+                raw_detections.append({
+                    'box': obj_box,
+                    'class_name': class_name,
+                    'confidence': conf
+                })
+                detected_boxes.append(obj_box)
     
     # Apply stable tracking
     stable_results = _tracker.update(raw_detections, person_boxes, hand_boxes)
     
     return stable_results
-
-
-def _object_overlaps_hands(obj_box, hand_boxes):
-    """Check if object overlaps with detected hands."""
-    ox1, oy1, ox2, oy2 = obj_box
-    obj_w = ox2 - ox1
-    obj_h = oy2 - oy1
-    obj_area = obj_w * obj_h
-    
-    if obj_area < 500 or obj_w < 20 or obj_h < 20:
-        return False
-    
-    if obj_area <= 0:
-        return False
-    
-    obj_cx = (ox1 + ox2) // 2
-    obj_cy = (oy1 + oy2) // 2
-    
-    for hx1, hy1, hx2, hy2 in hand_boxes:
-        hand_expand = 80
-        hx1_exp = hx1 - hand_expand
-        hy1_exp = hy1 - hand_expand
-        hx2_exp = hx2 + hand_expand
-        hy2_exp = hy2 + hand_expand
-        
-        if (hx1_exp <= obj_cx <= hx2_exp) and (hy1_exp <= obj_cy <= hy2_exp):
-            return True
-        
-        ix1 = max(ox1, hx1_exp)
-        iy1 = max(oy1, hy1_exp)
-        ix2 = min(ox2, hx2_exp)
-        iy2 = min(oy2, hy2_exp)
-        
-        if ix2 > ix1 and iy2 > iy1:
-            intersection = (ix2 - ix1) * (iy2 - iy1)
-            if (intersection / obj_area) >= 0.15:
-                return True
-    
-    return False
-
-
-def _boxes_overlap(box1, box2, threshold=0.3):
-    """Check if boxes overlap."""
-    x1_1, y1_1, x2_1, y2_1 = box1
-    x1_2, y1_2, x2_2, y2_2 = box2
-    
-    xi1 = max(x1_1, x1_2)
-    yi1 = max(y1_1, y1_2)
-    xi2 = min(x2_1, x2_2)
-    yi2 = min(y2_1, y2_2)
-    
-    if xi2 <= xi1 or yi2 <= yi1:
-        return False
-    
-    inter = (xi2 - xi1) * (yi2 - yi1)
-    area1 = (x2_1 - x1_1) * (y2_1 - y1_1)
-    
-    return (inter / area1) > threshold if area1 > 0 else False
 
 
 def reset_tracker():

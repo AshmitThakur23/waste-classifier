@@ -185,55 +185,59 @@ def get_class_description(waste_class):
 
 def normalize_class_name(yolo_class_name):
     """
-    Normalize YOLO model output to standard categories
-    Maps model output to display names (RECYCLABLE/ORGANIC/HAZARDOUS/GENERAL)
+    Normalize YOLO model output to standard 4 dustbin categories.
     
-    Args:
-        yolo_class_name (str): Class name from YOLO model
-    
-    Returns:
-        str: Normalized category
+    Supports:
+      - Current garbage_detect.pt (8 classes)  
+      - Future v2 model (29 India-specific classes)
+      - Direct category names
     """
-    normalized = yolo_class_name.upper().strip()
-    
-    # Direct mappings for standard class names
-    if normalized == "RECYCLABLE":
+    normalized = yolo_class_name.upper().strip().replace(' ', '_')
+
+    # === RECYCLABLE (Blue Bin) ===
+    recyclable = {
+        'BOTTLE', 'CUP', 'GLASS', 'METAL', 'PLASTIC', 'PLASTIK',
+        # v2 classes
+        'PLASTIC_BOTTLE', 'GLASS_BOTTLE', 'METAL_CAN', 'PAPER',
+        'CARDBOARD', 'PLASTIC_BAG', 'WRAPPER', 'TETRA_PACK',
+        'PLASTIC_CONTAINER',
+        # Direct category
+        'RECYCLABLE',
+    }
+    if normalized in recyclable:
         return "RECYCLABLE"
-    
-    if normalized == "ORGANIC":
+
+    # === ORGANIC (Green Bin) ===
+    organic = {
+        'ORGANIC',
+        # v2 classes
+        'FOOD_WASTE', 'FRUIT_PEEL', 'VEGETABLE', 'LEAF', 'FLOWER',
+        'COCONUT_SHELL', 'PAPER_CUP', 'BANANA',
+        # Legacy
+        'BIODEGRADABLE',
+    }
+    if normalized in organic:
         return "ORGANIC"
-    
-    # Map BIODEGRADABLE to ORGANIC for display
-    if normalized == "BIODEGRADABLE":
-        return "ORGANIC"
-    
-    if normalized == "HAZARDOUS":
+
+    # === HAZARDOUS (Red Bin) ===
+    hazardous = {
+        'HAZARDOUS', 'HAZARD',
+        # v2 classes
+        'BATTERY', 'E_WASTE', 'MEDICINE', 'SYRINGE', 'BULB',
+        'CIGARETTE_BUTT',
+    }
+    if normalized in hazardous:
         return "HAZARDOUS"
-    
-    if normalized == "GENERAL":
+
+    # === GENERAL (Grey Bin) ===
+    general = {
+        'GENERAL',
+        # v2 classes
+        'THERMOCOL', 'DIAPER', 'RUBBER', 'CLOTH_RAG', 'BROKEN_ITEM',
+    }
+    if normalized in general:
         return "GENERAL"
-    
-    # Fallback: try keyword matching for robustness
-    # Recyclable variations
-    recyclable_keywords = ['RECYCLABLE', 'RECYCLE', 'PLASTIC', 'PAPER', 'GLASS', 'METAL', 'CARDBOARD', 'ALUMINUM', 'CAN', 'BOTTLE']
-    if any(keyword in normalized for keyword in recyclable_keywords):
-        return "RECYCLABLE"
-    
-    # Organic/Biodegradable variations
-    organic_keywords = ['ORGANIC', 'BIODEGRADABLE', 'COMPOST', 'FOOD', 'GARDEN', 'LEAF', 'LEAVES', 'WOOD']
-    if any(keyword in normalized for keyword in organic_keywords):
-        return "ORGANIC"
-    
-    # Hazardous variations
-    hazardous_keywords = ['HAZARDOUS', 'HAZARD', 'BATTERY', 'CHEMICAL', 'MEDICAL', 'E-WASTE', 'TOXIC', 'PAINT', 'BULB']
-    if any(keyword in normalized for keyword in hazardous_keywords):
-        return "HAZARDOUS"
-    
-    # General waste variations
-    general_keywords = ['GENERAL', 'TRASH', 'TISSUE', 'WRAPPER', 'CHIP', 'SNACK', 'STYROFOAM']
-    if any(keyword in normalized for keyword in general_keywords):
-        return "GENERAL"
-    
-    # Default to GENERAL for unknown items
+
+    # Default unknown items to GENERAL
     return "GENERAL"
 

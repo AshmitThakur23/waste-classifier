@@ -1,216 +1,130 @@
 """
-Hand Detection Module
-=====================
-Uses trained hand detection model to identify hands in frame.
-This helps focus garbage detection on objects in hands only.
+Hand Detection Module — MediaPipe HandLandmarker
+=================================================
+Uses MediaPipe hand landmarks for precise hand tracking.
+Detects 21 landmarks per hand — knows exactly where each finger is,
+whether hand is open/closed/gripping.
+
+Same API as the old YOLO-based module — drop-in replacement.
 """
 
 import cv2
 import numpy as np
-from ultralytics import YOLO
+import mediapipe as mp
 import os
 
-# Path to trained hand model - relative to project root
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HAND_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "hand_detect.pt")
+HAND_MODEL_PATH = os.path.join(_PROJECT_ROOT, "models", "hand_landmarker.task")
 
-_hand_model = None
+_hand_landmarker = None
 _model_loaded = False
 
 
 def _load_model():
-    """Load hand detection model once."""
-    global _hand_model, _model_loaded
+    """Load MediaPipe HandLandmarker once."""
+    global _hand_landmarker, _model_loaded
     if not _model_loaded:
         if os.path.exists(HAND_MODEL_PATH):
-            _hand_model = YOLO(HAND_MODEL_PATH)
-            print(f"✅ Hand detection model loaded: {HAND_MODEL_PATH}")
+            options = mp.tasks.vision.HandLandmarkerOptions(
+                base_options=mp.tasks.BaseOptions(model_asset_path=HAND_MODEL_PATH),
+                num_hands=4,
+                min_hand_detection_confidence=0.4,
+                min_hand_presence_confidence=0.4,
+                min_tracking_confidence=0.4,
+                running_mode=mp.tasks.vision.RunningMode.IMAGE,
+            )
+            _hand_landmarker = mp.tasks.vision.HandLandmarker.create_from_options(options)
+            print(f"✅ MediaPipe HandLandmarker loaded: {HAND_MODEL_PATH}")
         else:
             print(f"⚠️ Hand model not found at: {HAND_MODEL_PATH}")
-            print("   Using person body detection as fallback")
-            _hand_model = None
+            print("   Using person body fallback for hand regions")
+            _hand_landmarker = None
         _model_loaded = True
-    return _hand_model
-
-
-class HandStabilityTracker:
-    """
-    Stability tracker for hand detections.
-    Prevents flickering by requiring consistent detections.
-    """
-    def __init__(self):
-        self.tracked = {}  # id -> {box, count, last_seen}
-        self.next_id = 0
-        self.frame_num = 0
-        self.min_frames = 3  # Must see 3 frames to be stable
-        self.max_missing = 5  # Remove after 5 missing frames
-    
-    def update(self, raw_boxes):
-        """Update with raw detections, return only stable ones."""
-        self.frame_num += 1
-        stable = []
-        used_ids = set()
-        
-        for box in raw_boxes:
-            x1, y1, x2, y2, conf = box
-            cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
-            
-            # Find matching track
-            match_id = None
-            min_dist = 80  # Max distance to match
-            
-            for tid, data in self.tracked.items():
-                if tid in used_ids:
-                    continue
-                tx1, ty1, tx2, ty2, _ = data['box']
-                tcx, tcy = (tx1 + tx2) // 2, (ty1 + ty2) // 2
-                dist = ((cx - tcx)**2 + (cy - tcy)**2)**0.5
-                if dist < min_dist:
-                    min_dist = dist
-                    match_id = tid
-            
-            if match_id is not None:
-                # Update existing
-                self.tracked[match_id]['box'] = box
-                self.tracked[match_id]['count'] += 1
-                self.tracked[match_id]['last_seen'] = self.frame_num
-                used_ids.add(match_id)
-                
-                if self.tracked[match_id]['count'] >= self.min_frames:
-                    stable.append(box)
-            else:
-                # New track
-                self.tracked[self.next_id] = {
-                    'box': box,
-                    'count': 1,
-                    'last_seen': self.frame_num
-                }
-                self.next_id += 1
-        
-        # Remove old tracks
-        to_del = [tid for tid, d in self.tracked.items() 
-                  if self.frame_num - d['last_seen'] > self.max_missing]
-        for tid in to_del:
-            del self.tracked[tid]
-        
-        return stable
-    
-    def reset(self):
-        """Reset tracking."""
-        self.tracked = {}
-        self.next_id = 0
-
-
-_tracker = HandStabilityTracker()
+    return _hand_landmarker
 
 
 def detect_hands(frame, confidence_threshold=0.35, person_boxes=None):
     """
-    Detect hands in frame.
-    
-    Args:
-        frame: Input frame
-        confidence_threshold: Minimum confidence for hand detection
-        person_boxes: Optional person boxes to filter hands
-    
+    Detect hands in frame using MediaPipe.
+
     Returns:
-        hand_boxes: List of (x1, y1, x2, y2) tuples
+        hand_boxes: List of (x1, y1, x2, y2) bounding box tuples
     """
-    model = _load_model()
-    
-    # If no model, estimate hands from person boxes
-    if model is None:
+    landmarker = _load_model()
+
+    if landmarker is None:
         if person_boxes:
             return _estimate_hand_regions_from_person(person_boxes)
         return []
-    
-    # Detect hands using trained model
-    results = model(frame, verbose=False, conf=confidence_threshold)
-    
-    raw_boxes = []
-    for result in results:
-        if result.boxes is not None:
-            for box in result.boxes:
-                x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                conf = float(box.conf[0])
-                raw_boxes.append((x1, y1, x2, y2, conf))
-    
-    # Apply stability tracking
-    stable_boxes = _tracker.update(raw_boxes)
-    
-    # Convert to simple tuples
-    hand_boxes = [(int(x1), int(y1), int(x2), int(y2)) for x1, y1, x2, y2, _ in stable_boxes]
-    
-    # Filter by person boxes if provided
-    if person_boxes:
+
+    h, w = frame.shape[:2]
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+
+    result = landmarker.detect(mp_image)
+
+    hand_boxes = []
+    if result.hand_landmarks:
+        for landmarks in result.hand_landmarks:
+            xs = [lm.x * w for lm in landmarks]
+            ys = [lm.y * h for lm in landmarks]
+            x1 = max(0, int(min(xs)) - 15)
+            y1 = max(0, int(min(ys)) - 15)
+            x2 = min(w, int(max(xs)) + 15)
+            y2 = min(h, int(max(ys)) + 15)
+            hand_boxes.append((x1, y1, x2, y2))
+
+    # Filter by person proximity
+    if person_boxes and hand_boxes:
         hand_boxes = _filter_hands_near_person(hand_boxes, person_boxes)
-    
+
     return hand_boxes
 
 
 def _estimate_hand_regions_from_person(person_boxes):
-    """
-    Fallback: Estimate hand regions from person boxes.
-    Returns likely hand locations (sides and bottom of person box).
-    """
+    """Fallback: estimate hand regions from person bounding boxes."""
     hand_regions = []
-    
     for px1, py1, px2, py2 in person_boxes:
         pw = px2 - px1
         ph = py2 - py1
-        
-        # Expand person box slightly for hands
         expand_x = int(pw * 0.20)
         expand_y = int(ph * 0.05)
-        
         hx1 = px1 - expand_x
         hx2 = px2 + expand_x
-        hy1 = py1 + int(ph * 0.10)  # Below head
+        hy1 = py1 + int(ph * 0.10)
         hy2 = py2 + expand_y
-        
         hand_regions.append((hx1, hy1, hx2, hy2))
-    
     return hand_regions
 
 
 def _filter_hands_near_person(hand_boxes, person_boxes, max_distance=100):
-    """
-    Filter hands that are near person boxes.
-    """
+    """Keep only hands near a detected person."""
     filtered = []
-    
     for hx1, hy1, hx2, hy2 in hand_boxes:
         hcx = (hx1 + hx2) // 2
         hcy = (hy1 + hy2) // 2
-        
         for px1, py1, px2, py2 in person_boxes:
-            # Check if hand center is within or near person box
             if (px1 - max_distance <= hcx <= px2 + max_distance and
                 py1 - max_distance <= hcy <= py2 + max_distance):
                 filtered.append((hx1, hy1, hx2, hy2))
                 break
-    
     return filtered
 
 
 def draw_hands(frame, hand_boxes):
-    """
-    Draw hand detection boxes on frame.
-    """
+    """Draw hand bounding boxes on frame."""
     for x1, y1, x2, y2 in hand_boxes:
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
         cv2.putText(frame, "Hand", (x1, y1 - 5),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
-    
     return frame
 
 
 def is_model_available():
-    """Check if hand model exists."""
+    """Check if MediaPipe hand model exists."""
     return os.path.exists(HAND_MODEL_PATH)
 
 
 def reset_tracker():
-    """Reset hand tracking."""
-    global _tracker
-    _tracker.reset()
+    """Reset (no-op for MediaPipe — stateless per-frame detection)."""
+    pass

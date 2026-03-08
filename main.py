@@ -2,18 +2,18 @@
 # SMART LITTERING DETECTION SYSTEM
 # ============================================================
 # 
-# MODELS USED:
-# 1. Person: models/person_yolov8n.pt
-# 2. Hand: models/hand_best.pt
-# 3. Garbage: models/garbage_detect_best.pt
-# 4. Dustbin: models/dustbin_best.pt
-# 5. Classification: backend/model/best.pt
+# MODELS:
+# 1. Person: models/person_detect.pt (person detection)
+# 2. Garbage: models/garbage_detect.pt (8 waste classes - OUR TRAINED MODEL)
+# 3. Hand: models/hand_landmarker.task (MediaPipe hand landmarks)
+# 4. Dustbin: models/dustbin_detect.pt (dustbin detection - OUR TRAINED MODEL)
 #
 # KEY RULES:
-# - Only detect garbage IN PERSON'S HANDS (not background)
-# - Stable detection (no flickering - requires 2+ frames)
+# - Detect garbage near person using OUR custom garbage_detect.pt
+# - Stable detection (no flickering - state machine with hysteresis)
 # - Grace time: 10 seconds to dispose properly
 # - Dustbin bonus: +5 seconds if near dustbin
+# - Shows waste CATEGORY + dustbin COLOR for each item
 # - Evidence capture on confirmed littering
 #
 # ============================================================
@@ -21,7 +21,6 @@
 import cv2
 import time
 import os
-from datetime import datetime
 from ultralytics import YOLO
 
 # Project root
@@ -30,10 +29,10 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Import modules (relative to detection/ package)
 from detection.dustbin_detection import detect_dustbin, reset_tracker as reset_dustbin
 from detection.garbage_detection import get_garbage_detections, reset_tracker as reset_garbage, enable_hand_detection
-from detection.garbage_classification import detect_with_classification, _load_model as load_classification_model
-from detection.hand_detection import detect_hands, draw_hands, reset_tracker as reset_hand, is_model_available as hand_model_available
+from detection.hand_detection import detect_hands, reset_tracker as reset_hand, is_model_available as hand_model_available
 from detection.logic.littering_decision import LitteringTracker
 from detection.utils.evidence_manager import EvidenceManager
+from backend.utils import normalize_class_name
 
 # ============================================================
 # CONFIGURATION
@@ -56,6 +55,20 @@ PRE_BUFFER = 5  # Seconds before event
 POST_RECORD = 5  # Seconds after event
 COOLDOWN = 30  # Seconds between captures
 
+# Waste category -> dustbin color mapping (BGR for OpenCV)
+CATEGORY_BGR = {
+    "RECYCLABLE": (230, 150, 0),   # Blue
+    "ORGANIC":    (0, 180, 0),     # Green
+    "HAZARDOUS":  (0, 0, 230),     # Red
+    "GENERAL":    (140, 140, 140), # Grey
+}
+DUSTBIN_NAMES = {
+    "RECYCLABLE": "Blue Bin",
+    "ORGANIC":    "Green Bin",
+    "HAZARDOUS":  "Red Bin",
+    "GENERAL":    "Grey Bin",
+}
+
 # ============================================================
 # INITIALIZATION
 # ============================================================
@@ -76,7 +89,6 @@ from detection.garbage_detection import _load_model as load_garbage_model
 from detection.hand_detection import _load_model as load_hand_model
 load_dustbin_model()
 load_garbage_model()
-load_classification_model()
 load_hand_model()
 
 # Check if hand detection is available and enable it
@@ -233,6 +245,11 @@ while True:
             garbage_boxes.append((x1, y1, x2, y2))
             garbage_in_hands.append(in_hands)
             
+            # Map to waste category and dustbin color
+            category = normalize_class_name(cls_name)
+            bin_name = DUSTBIN_NAMES.get(category, "Grey Bin")
+            cat_color = CATEGORY_BGR.get(category, (140, 140, 140))
+            
             if in_hands:
                 color = (0, 255, 0)
                 label = f"{cls_name} (holding)"
@@ -243,6 +260,11 @@ while True:
             cv2.rectangle(display_frame, (x1, y1), (x2, y2), color, 2)
             cv2.putText(display_frame, label, (x1, y1 - 10),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+            
+            # Show waste category + dustbin color below the box
+            bin_label = f"{category} -> {bin_name}"
+            cv2.putText(display_frame, bin_label, (x1, y2 + 18),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, cat_color, 2)
     
     # --------------------------------------------------
     # 5. LITTERING LOGIC

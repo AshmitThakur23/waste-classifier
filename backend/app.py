@@ -52,9 +52,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuration
-MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), '..', 'models', 'waste_classify.pt'))
-CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.65"))
+# Configuration - use garbage_detect.pt (89.7% accuracy, 8 classes mapped to 4 categories)
+MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), '..', 'models', 'garbage_detect.pt'))
+CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.30"))
 MAX_IMAGE_SIZE = int(os.getenv("MAX_IMAGE_SIZE", "10485760"))  # 10MB
 FRONTEND_PATH = Path(__file__).parent.parent / "frontend"
 
@@ -91,11 +91,6 @@ async def root():
                 "categories": "/api/categories"
             }
         }
-
-
-# Mount static files for frontend
-if FRONTEND_PATH.exists():
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_PATH)), name="static")
 
 
 @app.get("/health")
@@ -155,65 +150,43 @@ async def classify_waste(file: UploadFile = File(...)):
         if image.mode != 'RGB':
             image = image.convert('RGB')
         
-        # ===== PRIMARY: YOLOv8 Model for waste classification =====
-        logger.info("🔍 Running YOLOv8 classification...")
-        results = model(image, verbose=False)
+        # ===== PRIMARY: YOLOv8 garbage detection model =====
+        # Model detects: Bottle, Cup, Glass, Hazardous, Metal, Organic, Plastic, Plastik
+        # We map these 8 classes to 4 categories: RECYCLABLE, ORGANIC, HAZARDOUS, GENERAL
+        logger.info("🔍 Running YOLOv8 detection...")
+        results = model(image, verbose=False, conf=0.25)
         
         # Process results
         if len(results) > 0 and len(results[0].boxes) > 0:
-            # Extract predictions
             boxes = results[0].boxes
             confidences = boxes.conf.cpu().numpy()
             classes = boxes.cls.cpu().numpy()
-            
-            # Get highest confidence prediction
-            max_conf_idx = confidences.argmax()
-            predicted_class_id = int(classes[max_conf_idx])
-            confidence = float(confidences[max_conf_idx])
-            
-            # Get class name from model
             class_names = results[0].names
-            yolo_class_name = class_names[predicted_class_id]
             
-            # Normalize to standard categories
-            category = normalize_class_name(yolo_class_name)
+            # Collect all detections and map to categories
+            category_scores = {"RECYCLABLE": 0.0, "ORGANIC": 0.0, "HAZARDOUS": 0.0, "GENERAL": 0.0}
+            best_item_name = None
+            best_conf = 0.0
             
-            # SMART CORRECTION: Fix model bias towards RECYCLABLE
-            # Check if other classes have decent scores
-            all_detections = {}
-            for i, (cls_id, conf) in enumerate(zip(classes, confidences)):
-                cls_name = class_names[int(cls_id)]
-                if cls_name not in all_detections or conf > all_detections[cls_name]:
-                    all_detections[cls_name] = float(conf)
+            for cls_id, conf in zip(classes, confidences):
+                item_name = class_names[int(cls_id)]
+                category = normalize_class_name(item_name)
+                conf_val = float(conf)
+                if conf_val > category_scores[category]:
+                    category_scores[category] = conf_val
+                if conf_val > best_conf:
+                    best_conf = conf_val
+                    best_item_name = item_name
             
-            logger.info(f"All detections: {all_detections}")
+            # Pick the category with the highest confidence
+            category = max(category_scores, key=category_scores.get)
+            confidence = category_scores[category]
+            yolo_class_name = best_item_name
             
-            # If predicted RECYCLABLE but HAZARDOUS or GENERAL has >20% confidence, reconsider
-            if category == "RECYCLABLE" and confidence < 0.80:
-                if all_detections.get("HAZARDOUS", 0) > 0.20:
-                    category = "HAZARDOUS"
-                    confidence = all_detections["HAZARDOUS"]
-                    yolo_class_name = "HAZARDOUS"
-                    logger.info("⚠️ Corrected: RECYCLABLE -> HAZARDOUS (safety)")
-                elif all_detections.get("GENERAL", 0) > 0.25:
-                    category = "GENERAL"
-                    confidence = all_detections["GENERAL"]
-                    yolo_class_name = "GENERAL"
-                    logger.info("⚠️ Corrected: RECYCLABLE -> GENERAL")
+            logger.info(f"Detected: {best_item_name} -> {category} ({confidence:.2f})")
+            logger.info(f"Category scores: {category_scores}")
             
-            # Apply safety threshold - but be smart about it
-            # ORGANIC is safe even if wrong (compost), so don't override it
-            # HAZARDOUS should stay HAZARDOUS 
-            # Only apply strict threshold to RECYCLABLE (wrong recycling is bad)
             is_safe_classification = confidence >= CONFIDENCE_THRESHOLD
-            if not is_safe_classification and category == "RECYCLABLE":
-                # Low confidence recyclable -> default to GENERAL (safer)
-                category = "GENERAL"
-                logger.warning(f"Low confidence ({confidence:.2f}) recyclable -> GENERAL")
-            elif not is_safe_classification and category not in ["ORGANIC", "HAZARDOUS"]:
-                # Unknown low confidence -> GENERAL (not HAZARDOUS, to avoid confusion)
-                category = "GENERAL"
-                logger.warning(f"Low confidence ({confidence:.2f}), classifying as GENERAL")
             
             # Get dustbin info
             dustbin_color = get_dustbin_color(category)
@@ -294,6 +267,139 @@ async def get_categories():
         ],
         "confidence_threshold": CONFIDENCE_THRESHOLD
     }
+
+
+# ============================================================
+# DASHBOARD ROUTES (merged from Flask dashboard)
+# ============================================================
+
+import csv
+
+EVIDENCE_FOLDER = Path(__file__).parent.parent / "evidence"
+IMAGES_FOLDER = EVIDENCE_FOLDER / "images"
+VIDEOS_FOLDER = EVIDENCE_FOLDER / "videos"
+LOGS_FILE = EVIDENCE_FOLDER / "logs" / "events.csv"
+DASHBOARD_TEMPLATES = Path(__file__).parent.parent / "dashboard" / "templates"
+
+
+@app.get("/dashboard")
+async def dashboard():
+    """Serve littering detection dashboard."""
+    html_path = DASHBOARD_TEMPLATES / "dashboard.html"
+    if html_path.exists():
+        return FileResponse(html_path)
+    return {"error": "Dashboard template not found"}
+
+
+@app.get("/incidents")
+async def incidents_page():
+    """Serve incidents page."""
+    html_path = DASHBOARD_TEMPLATES / "incidents.html"
+    if html_path.exists():
+        return FileResponse(html_path)
+    return {"error": "Incidents template not found"}
+
+
+@app.get("/incident_detail")
+async def incident_detail_page():
+    """Serve incident detail page."""
+    html_path = DASHBOARD_TEMPLATES / "incident_detail.html"
+    if html_path.exists():
+        return FileResponse(html_path)
+    return {"error": "Incident detail template not found"}
+
+
+@app.get("/api/incidents")
+async def get_incidents():
+    """Get all littering incidents."""
+    incidents = []
+    
+    if LOGS_FILE.exists():
+        try:
+            with open(LOGS_FILE, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row.get('image_path'):
+                        row['image_path'] = os.path.basename(row['image_path'])
+                    if row.get('video_path'):
+                        row['video_path'] = os.path.basename(row['video_path'])
+                    incidents.append(row)
+        except Exception as e:
+            logger.error(f"Error reading logs: {e}")
+    
+    if IMAGES_FOLDER.exists():
+        for filename in os.listdir(IMAGES_FOLDER):
+            if filename.endswith(('.jpg', '.png')):
+                try:
+                    parts = filename.replace('litter_', '').replace('.jpg', '').replace('.png', '')
+                    timestamp = parts.replace('_', ' ').replace('-', ':', 2)
+                    exists = any(i.get('image_path', '').endswith(filename) for i in incidents)
+                    if not exists:
+                        incidents.append({
+                            'timestamp': timestamp,
+                            'event_type': 'LITTERING',
+                            'image_path': filename,
+                            'video_path': '',
+                            'garbage_class': 'Unknown',
+                            'garbage_confidence': '0.0',
+                            'person_confidence': '0.0'
+                        })
+                except Exception:
+                    pass
+    
+    incidents.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+    return incidents
+
+
+@app.get("/api/stats")
+async def get_stats():
+    """Get dashboard statistics."""
+    incidents = []
+    if LOGS_FILE.exists():
+        try:
+            with open(LOGS_FILE, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                incidents = list(reader)
+        except Exception:
+            pass
+    
+    image_count = 0
+    if IMAGES_FOLDER.exists():
+        image_count = len([f for f in os.listdir(IMAGES_FOLDER) if f.endswith(('.jpg', '.png'))])
+    
+    video_count = 0
+    if VIDEOS_FOLDER.exists():
+        video_count = len([f for f in os.listdir(VIDEOS_FOLDER) if f.endswith(('.mp4', '.avi'))])
+    
+    return {
+        'total_incidents': max(len(incidents), image_count),
+        'total_images': image_count,
+        'total_videos': video_count,
+        'today_incidents': sum(1 for i in incidents if datetime.now().strftime('%Y-%m-%d') in i.get('timestamp', ''))
+    }
+
+
+@app.get("/evidence/images/{filename}")
+async def serve_evidence_image(filename: str):
+    """Serve evidence images."""
+    file_path = IMAGES_FOLDER / filename
+    if file_path.exists():
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Image not found")
+
+
+@app.get("/evidence/videos/{filename}")
+async def serve_evidence_video(filename: str):
+    """Serve evidence videos."""
+    file_path = VIDEOS_FOLDER / filename
+    if file_path.exists():
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Video not found")
+
+
+# Mount static files for frontend (must be AFTER all route definitions)
+if FRONTEND_PATH.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_PATH)), name="static")
 
 
 # For local development
