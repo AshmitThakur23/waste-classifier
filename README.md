@@ -1,28 +1,67 @@
 <div align="center">
 
-<!-- HERO BANNER -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:00ff88,50:00f5ff,100:a855f7&height=200&section=header&text=SMARTWASTE%20AI&fontSize=52&fontColor=ffffff&fontAlignY=38&desc=AI-Powered%20Waste%20Classification%20%26%20Littering%20Detection&descAlignY=58&descSize=16&animation=fadeIn" width="100%"/>
-
-<!-- BADGES -->
-![Python](https://img.shields.io/badge/Python-3.13-00ff88?style=for-the-badge&logo=python&logoColor=white&labelColor=0a0a0a)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109-00f5ff?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0a0a0a)
-![Flask](https://img.shields.io/badge/Flask-3.0-a855f7?style=for-the-badge&logo=flask&logoColor=white&labelColor=0a0a0a)
-![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-ffd700?style=for-the-badge&labelColor=0a0a0a)
-![Gemini](https://img.shields.io/badge/Gemini-AI-ff006e?style=for-the-badge&logo=google&logoColor=white&labelColor=0a0a0a)
-![License](https://img.shields.io/badge/License-MIT-00ff88?style=for-the-badge&labelColor=0a0a0a)
+<!-- TOP BANNER -->
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:000000,30:001a0d,70:001a1a,100:000000&height=220&text=SMARTWASTE%20AI&fontSize=62&fontColor=00ff88&fontAlignY=45&desc=◈%20WASTE%20CLASSIFICATION%20%7C%20LITTERING%20DETECTION%20◈&descAlignY=68&descSize=14&animation=blinking&stroke=00ff88&strokeWidth=2" width="100%"/>
 
 <br/>
 
-> **🌍 AI-powered waste classification & real-time littering detection**
-> Powered by **YOLOv8**, **Computer Vision** & **Google Gemini AI**
+<!-- FUTURISTIC STAT CARDS -->
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+  <td align="center" width="140">
+    <img src="https://img.shields.io/badge/─────────────────────────────────────────────────────────────────────-000000?style=for-the-badge" width="0"/>
+    <img src="https://img.shields.io/badge/SYSTEM-ONLINE-00ff88?style=for-the-badge&labelColor=001a0d&logo=statuspage&logoColor=00ff88"/>
+  </td>
+  <td align="center" width="140">
+    <img src="https://img.shields.io/badge/MODELS-5%20ACTIVE-00f5ff?style=for-the-badge&labelColor=001a1a&logo=pytorch&logoColor=00f5ff"/>
+  </td>
+  <td align="center" width="140">
+    <img src="https://img.shields.io/badge/ACCURACY-99.4%25_PEAK-ffd700?style=for-the-badge&labelColor=1a1500&logo=target&logoColor=ffd700"/>
+  </td>
+  <td align="center" width="140">
+    <img src="https://img.shields.io/badge/MODULES-2%20RUNNING-a855f7?style=for-the-badge&labelColor=0f0020&logo=buffer&logoColor=a855f7"/>
+  </td>
+  <td align="center" width="140">
+    <img src="https://img.shields.io/badge/GPU-RTX%203050-ff006e?style=for-the-badge&labelColor=1a0010&logo=nvidia&logoColor=ff006e"/>
+  </td>
+</tr>
+</table>
 
 <br/>
 
-[🚀 Quick Start](#-quick-start) &nbsp;·&nbsp;
-[🏗️ Architecture](#️-architecture) &nbsp;·&nbsp;
-[🤖 Models](#-model-performance) &nbsp;·&nbsp;
-[📁 Structure](#-project-structure) &nbsp;·&nbsp;
-[🤝 Contribute](#-contributing)
+<!-- TECH STACK BADGES ROW 1 -->
+<img src="https://img.shields.io/badge/Python-3.13-00ff88?style=for-the-badge&logo=python&logoColor=white&labelColor=0a0a0a"/>
+<img src="https://img.shields.io/badge/FastAPI-0.109-00f5ff?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0a0a0a"/>
+<img src="https://img.shields.io/badge/Flask-3.0-a855f7?style=for-the-badge&logo=flask&logoColor=white&labelColor=0a0a0a"/>
+<img src="https://img.shields.io/badge/PyTorch-Latest-ff006e?style=for-the-badge&logo=pytorch&logoColor=white&labelColor=0a0a0a"/>
+
+<!-- TECH STACK BADGES ROW 2 -->
+
+<img src="https://img.shields.io/badge/YOLOv8-Ultralytics-ffd700?style=for-the-badge&logo=opencv&logoColor=white&labelColor=0a0a0a"/>
+<img src="https://img.shields.io/badge/OpenCV-Vision-00f5ff?style=for-the-badge&logo=opencv&logoColor=white&labelColor=0a0a0a"/>
+<img src="https://img.shields.io/badge/Gemini-1.5_Flash-ff006e?style=for-the-badge&logo=google&logoColor=white&labelColor=0a0a0a"/>
+<img src="https://img.shields.io/badge/License-Custom-00ff88?style=for-the-badge&labelColor=0a0a0a"/>
+
+<br/><br/>
+
+<!-- TAGLINE -->
+
+```
+█▀ █▀▄▀█ ▄▀█ █▀█ ▀█▀ █ █ █ ▄▀█ █▀ ▀█▀ █▀▀   ▄▀█ █
+▄█ █ ▀ █ █▀█ █▀▄  █  ▀▄▀▄▀ █▀█ ▄█  █  ██▄   █▀█ █
+```
+
+> 🌍 **AI-powered waste classification & real-time littering detection**
+> Powered by **YOLOv8 · Computer Vision · Google Gemini AI · Python 3.13**
+
+<br/>
+
+<!-- NAV LINKS -->
+[![Quick Start](https://img.shields.io/badge/🚀_QUICK_START-000?style=for-the-badge&labelColor=001a0d&color=00ff88)](#-quick-start)
+[![Architecture](https://img.shields.io/badge/🏗_ARCHITECTURE-000?style=for-the-badge&labelColor=001a1a&color=00f5ff)](#️-architecture)
+[![Models](https://img.shields.io/badge/🤖_MODELS-000?style=for-the-badge&labelColor=1a1500&color=ffd700)](#-model-performance)
+[![Structure](https://img.shields.io/badge/📁_STRUCTURE-000?style=for-the-badge&labelColor=0f0020&color=a855f7)](#-project-structure)
+[![Contribute](https://img.shields.io/badge/🤝_CONTRIBUTE-000?style=for-the-badge&labelColor=1a0010&color=ff006e)](#-contributing)
 
 </div>
 
@@ -59,33 +98,84 @@ Real-time camera monitoring → Detects littering behavior → 10-second grace p
 
 ## 🏗️ Architecture
 
+### 🗑️ Module 1 — Waste Classifier · Port 8000
+
 ```mermaid
 graph TB
-    subgraph M1["🗑️ MODULE 1 — Waste Classifier · Port 8000"]
-        A([📸 User Uploads\nWaste Image]) --> B[FastAPI Server\napp.py]
-        B --> C[YOLOv8\nClassification]
-        C --> D{4 Waste\nCategories}
-        D --> E1[♻️ Recyclable\nBlue Bin]
-        D --> E2[🌱 Organic\nGreen Bin]
-        D --> E3[⚠️ Hazardous\nRed Bin]
-        D --> E4[⬛ General\nBlack Bin]
-        E1 & E2 & E3 & E4 --> F[Gemini AI\ngemini_service.py]
-        F --> G([🖥️ Display Result\nBin Color · Tips · Confidence %])
-    end
+    A([📸 User Uploads Waste Image])
+    A --> B[🌐 Frontend\nindex.html · script.js · style.css]
+    B --> C[⚙️ FastAPI Server\nbackend/app.py · Port 8000]
+    C --> D[🤖 YOLOv8 Classification Model\nwaste_classify.pt · 17.6 MB · 53.6% mAP50]
+    D --> E{🗂️ 4 Waste Categories}
 
-    subgraph M2["📹 MODULE 2 — Littering Detector · Port 5000"]
-        H([🎥 Webcam\nFeed Stream]) --> I[Person Detection\nYOLOv8n COCO]
-        I --> J[Hand Tracking\n99.4% mAP50]
-        J --> K[Garbage Detection\n89.7% mAP50]
-        K --> L[Dustbin Detection\n96.6% mAP50]
-        L --> M{Grace Period\nLogic 10 sec}
-        M -->|Littering!| N[Evidence Manager\nScreenshot + Video]
-        N --> O([Flask Dashboard\nEvidence Review])
-        M -->|Disposed OK| P([✅ No Action])
-    end
+    E --> E1[♻️ RECYCLABLE\nBottles · Paper · Cardboard · Metal]
+    E --> E2[🌱 ORGANIC\nFood · Leaves · Flowers · Fruit]
+    E --> E3[⚠️ HAZARDOUS\nBatteries · Chemicals · Medical]
+    E --> E4[⬛ GENERAL\nMixed · Non-Recyclable · Other]
 
-    style M1 fill:#001a0d,stroke:#00ff88,color:#00ff88
-    style M2 fill:#001a1a,stroke:#00f5ff,color:#00f5ff
+    E1 --> BIN1[🔵 Blue Bin]
+    E2 --> BIN2[🟢 Green Bin]
+    E3 --> BIN3[🔴 Red Bin]
+    E4 --> BIN4[⬛ Black Bin]
+
+    BIN1 & BIN2 & BIN3 & BIN4 --> G[🧠 Gemini 1.5 Flash AI\ngemini_service.py\nEco Tips · Disposal Info · Fun Facts]
+    G --> H([🖥️ Display Result\nBin Color · Category · Confidence % · AI Tips])
+
+    style A fill:#001a0d,stroke:#00ff88,color:#00ff88
+    style C fill:#001a1a,stroke:#00f5ff,color:#00f5ff
+    style D fill:#1a1500,stroke:#ffd700,color:#ffd700
+    style E fill:#0f0020,stroke:#a855f7,color:#a855f7
+    style G fill:#1a0010,stroke:#ff006e,color:#ff006e
+    style H fill:#001a0d,stroke:#00ff88,color:#00ff88
+    style E1 fill:#001a33,stroke:#00f5ff,color:#00f5ff
+    style E2 fill:#001a0d,stroke:#00ff88,color:#00ff88
+    style E3 fill:#1a0000,stroke:#ff006e,color:#ff006e
+    style E4 fill:#111111,stroke:#888888,color:#aaaaaa
+    style BIN1 fill:#001a33,stroke:#00f5ff,color:#00f5ff
+    style BIN2 fill:#001a0d,stroke:#00ff88,color:#00ff88
+    style BIN3 fill:#1a0000,stroke:#ff006e,color:#ff006e
+    style BIN4 fill:#111111,stroke:#888888,color:#aaaaaa
+```
+
+---
+
+### 📹 Module 2 — Littering Detector · Port 5000
+
+```mermaid
+graph TB
+    CAM([🎥 Webcam Feed Stream\nReal-Time Video Input])
+
+    CAM --> P1[👤 Person Detection\nYOLOv8n COCO · 6.3 MB]
+    P1 --> P2[✋ Hand Tracking\nhand_detect.pt · 6.0 MB · 99.4% mAP50]
+    P2 --> P3[🗑️ Garbage Detection\ngarbage_detect.pt · 5.9 MB · 89.7% mAP50]
+    P3 --> P4[🪣 Dustbin Detection\ndustbin_detect.pt · 6.0 MB · 96.6% mAP50]
+    P4 --> P5[🧠 Littering Decision Logic\nlittering_decision.py]
+
+    P5 --> GP{⏱️ Grace Period\n10 Seconds}
+
+    GP -->|✅ Disposed in Dustbin| OK([✅ No Violation\nReset Detection])
+
+    GP -->|❌ Littering Detected!| EV[📁 Evidence Manager\nevidence_manager.py]
+
+    EV --> SS[📸 Screenshot\nevidence/images/]
+    EV --> VID[🎬 Video Clip\nevidence/videos/]
+    EV --> LOG[📋 Event Log\nevidence/logs/]
+
+    SS & VID & LOG --> DASH([🖥️ Flask Dashboard\ndashboard/app.py · Port 5000\nCyberpunk Evidence UI])
+
+    style CAM fill:#001a1a,stroke:#00f5ff,color:#00f5ff
+    style P1 fill:#001a0d,stroke:#00ff88,color:#00ff88
+    style P2 fill:#001a0d,stroke:#00ff88,color:#00ff88
+    style P3 fill:#1a1500,stroke:#ffd700,color:#ffd700
+    style P4 fill:#1a1500,stroke:#ffd700,color:#ffd700
+    style P5 fill:#0f0020,stroke:#a855f7,color:#a855f7
+    style GP fill:#1a0a00,stroke:#ff8800,color:#ff8800
+    style OK fill:#001a0d,stroke:#00ff88,color:#00ff88
+    style EV fill:#1a0010,stroke:#ff006e,color:#ff006e
+    style SS fill:#1a0010,stroke:#ff006e,color:#ff006e
+    style VID fill:#1a0010,stroke:#ff006e,color:#ff006e
+    style LOG fill:#1a0010,stroke:#ff006e,color:#ff006e
+    style DASH fill:#001a1a,stroke:#00f5ff,color:#00f5ff
 ```
 
 ---
